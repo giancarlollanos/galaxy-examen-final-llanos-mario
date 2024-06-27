@@ -2,11 +2,15 @@ pipeline {
     agent any
     environment {
         DOCKER_CREDS = credentials('docker-credentials')
+        SONARQUBE_CREDS = credentials('sonarqube-token')
     }
     stages {
         stage('Build') {
             agent {
-                docker { image 'maven:3.6.3-openjdk-11-slim' }
+                docker { 
+                    image 'maven:3.6.3-openjdk-11-slim' 
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
             }
             steps {
                 sh 'mvn clean install'
@@ -15,6 +19,12 @@ pipeline {
         }
 
         stage('SonarQube') {
+            agent {
+                docker { 
+                    image 'maven:3.6.3-openjdk-11-slim' 
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
             steps {
                 script {
                     def scannerHome = tool 'scanner-default'
